@@ -1,5 +1,5 @@
 'use client'
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Select,
   SelectContent,
@@ -16,12 +16,22 @@ interface LanguageSelectorProps {
 }
 
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({ selectedLanguage, onLanguageChange }) => {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const handleValueChange = (code: string) => {
     const newLang = languages.find(lang => lang.code === code);
     if (newLang) {
       onLanguageChange(newLang);
     }
   };
+
+  if (!isClient) {
+    return <div className="w-[150px] h-10" />; // Return a placeholder on the server
+  }
 
   return (
     <Select value={selectedLanguage.code} onValueChange={handleValueChange}>
