@@ -21,6 +21,7 @@ import { Badge } from './ui/badge';
 import { Input } from './ui/input';
 import { cn } from '@/lib/utils';
 import { AiIcon } from './icons';
+import { Avatar } from './ui/avatar';
 
 // Mock hospital data
 const mockHospitals = [
@@ -33,20 +34,26 @@ interface ChatAreaProps {
   selectedLanguage: Language;
 }
 
-let messageIdCounter = 0;
+const initialMessage: Message = {
+  id: 'init',
+  role: 'assistant' as const,
+  content: "Hello! I am your Swasthya AI assistant. How are you feeling today? Please tell me your symptoms by tapping the microphone.",
+};
 
 export default function ChatArea({ selectedLanguage }: ChatAreaProps) {
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>([initialMessage]);
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showHospitals, setShowHospitals] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messageIdCounter = useRef(0);
 
   const addMessage = (role: 'user' | 'assistant', content: string) => {
-    setMessages(prev => [...prev, { id: `msg-${messageIdCounter++}`, role, content }]);
+    const id = `msg-${messageIdCounter.current++}`;
+    setMessages(prev => [...prev, { id, role, content }]);
   };
 
   const speak = useCallback((text: string) => {
@@ -64,19 +71,9 @@ export default function ChatArea({ selectedLanguage }: ChatAreaProps) {
   }, [selectedLanguage]);
 
   useEffect(() => {
-    const initialMessage = {
-      id: 'init',
-      role: 'assistant' as const,
-      content: "Hello! I am your Swasthya AI assistant. How are you feeling today? Please tell me your symptoms by tapping the microphone.",
-    };
-    setMessages([initialMessage]);
-    // The initial message is spoken inside the next useEffect
-    // to avoid speaking it twice on hydration.
-  }, []);
-
-
-  useEffect(() => {
-    if (messages.length > 0 && messages[messages.length - 1].role === 'assistant') {
+    if (messages.length === 1 && messages[0].id === 'init') {
+      speak(messages[0].content);
+    } else if (messages.length > 0 && messages[messages.length - 1].role === 'assistant') {
       speak(messages[messages.length - 1].content);
     }
   }, [messages, speak]);
