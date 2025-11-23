@@ -33,6 +33,8 @@ interface ChatAreaProps {
   selectedLanguage: Language;
 }
 
+let messageIdCounter = 0;
+
 export default function ChatArea({ selectedLanguage }: ChatAreaProps) {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -44,7 +46,7 @@ export default function ChatArea({ selectedLanguage }: ChatAreaProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const addMessage = (role: 'user' | 'assistant', content: string) => {
-    setMessages(prev => [...prev, { id: Date.now().toString(), role, content }]);
+    setMessages(prev => [...prev, { id: `msg-${messageIdCounter++}`, role, content }]);
   };
 
   const speak = useCallback((text: string) => {
@@ -68,8 +70,9 @@ export default function ChatArea({ selectedLanguage }: ChatAreaProps) {
       content: "Hello! I am your Swasthya AI assistant. How are you feeling today? Please tell me your symptoms by tapping the microphone.",
     };
     setMessages([initialMessage]);
-    speak(initialMessage.content);
-  }, [speak]);
+    // The initial message is spoken inside the next useEffect
+    // to avoid speaking it twice on hydration.
+  }, []);
 
 
   useEffect(() => {
